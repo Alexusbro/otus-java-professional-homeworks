@@ -19,3 +19,16 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'ru.otus.App'
+        )
+    }
+    // Этот код упаковывает все библиотеки внутрь jar
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
