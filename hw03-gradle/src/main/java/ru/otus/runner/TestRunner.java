@@ -16,26 +16,24 @@ import java.util.Map;
 
 public final class TestRunner {
 
-    public static void run(String className) {
+    public static void run(Class<?> testClass) {
         TestStatistics statistics = new TestStatistics();
 
-        Class<?> testClass = findClass(className);
         Method[] methods = testClass.getDeclaredMethods();
         Map<Class<? extends Annotation>, List<Method>> methodsByAnnotation = collectAnnotatedMethods(methods);
         Constructor<?> constructor = findConstructor(testClass);
-
         runTests(methodsByAnnotation, constructor, statistics);
 
         System.out.println(statistics);
     }
 
-    private static Class<?> findClass(String className) {
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(className + " not found", e);
-        }
-    }
+//    private static Class<?> findClass(String className) {
+//        try {
+//            return Class.forName(className);
+//        } catch (ClassNotFoundException e) {
+//            throw new RuntimeException(className + " not found", e);
+//        }
+//    }
 
     private static Constructor<?> findConstructor(Class<?> testClass) {
         try {
@@ -48,20 +46,53 @@ public final class TestRunner {
     private static Map<Class<? extends Annotation>, List<Method>> collectAnnotatedMethods(Method[] methods) {
         Map<Class<? extends Annotation>, List<Method>> methodsByAnnotation = new HashMap<>();
         for (Method method : methods) {
+            if (validateMethods(method)) {
+                if (method.isAnnotationPresent(Before.class)) {
+                    methodsByAnnotation.computeIfAbsent(Before.class, k -> new ArrayList<>()).add(method);
+                }
 
-            if (method.isAnnotationPresent(Before.class)) {
-                methodsByAnnotation.computeIfAbsent(Before.class, k -> new ArrayList<>()).add(method);
-            }
+                if (method.isAnnotationPresent(Test.class)) {
+                    methodsByAnnotation.computeIfAbsent(Test.class, k -> new ArrayList<>()).add(method);
+                }
 
-            if (method.isAnnotationPresent(Test.class)) {
-                methodsByAnnotation.computeIfAbsent(Test.class, k -> new ArrayList<>()).add(method);
-            }
-
-            if (method.isAnnotationPresent(After.class)) {
-                methodsByAnnotation.computeIfAbsent(After.class, k -> new ArrayList<>()).add(method);
+                if (method.isAnnotationPresent(After.class)) {
+                    methodsByAnnotation.computeIfAbsent(After.class, k -> new ArrayList<>()).add(method);
+                }
             }
         }
         return methodsByAnnotation;
+    }
+
+    private static boolean validateMethods(Method method) {
+        boolean isValidate = true;
+        int countAnnotations = 0;
+        if (method.getParameterCount() != 0) {
+            System.out.println(method.getName() + " annotated with @Test must not have parameters");
+            isValidate = false;
+        }
+
+        if (method.getReturnType() != void.class) {
+            System.out.println(method.getName() + " annotated with @Test must return void");
+            isValidate = false;
+        }
+
+        if (method.isAnnotationPresent(Before.class)) {
+            countAnnotations++;
+        }
+
+        if (method.isAnnotationPresent(Test.class)) {
+            countAnnotations++;
+        }
+
+        if (method.isAnnotationPresent(After.class)) {
+            countAnnotations++;
+        }
+
+        if (countAnnotations != 1) {
+            isValidate = false;
+        }
+
+        return isValidate;
     }
 
     private static void runTests(Map<Class<? extends Annotation>, List<Method>> methodsByAnnotation, Constructor<?> constructor, TestStatistics statistics) {

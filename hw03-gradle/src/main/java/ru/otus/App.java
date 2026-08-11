@@ -1,15 +1,19 @@
 package ru.otus;
 
 import ru.otus.runner.TestRunner;
+import ru.otus.tests.AfterFailureTests;
+import ru.otus.tests.BeforeFailureTests;
+import ru.otus.tests.SuccessfulTests;
+import ru.otus.tests.TestsFailureTests;
 
 public class App {
     public static void main(String[] args) {
-        TestRunner.run("ru.otus.tests.SuccessfulTests");
+        TestRunner.run(SuccessfulTests.class);
         System.out.println("_________________");
-        TestRunner.run("ru.otus.tests.BeforeFailureTests");
+        TestRunner.run(BeforeFailureTests.class);
         System.out.println("_________________");
-        TestRunner.run("ru.otus.tests.TestsFailureTests");
+        TestRunner.run(TestsFailureTests.class);
         System.out.println("_________________");
-        TestRunner.run("ru.otus.tests.AfterFailureTests");
+        TestRunner.run(AfterFailureTests.class);
     }
 }
