@@ -1,5 +1,10 @@
 plugins {
     id 'java'
+    id 'application'
+}
+
+application {
+    mainClass = 'ru.otus.App'
 }
 
 group = 'ru.otus.java.proffesional'
@@ -17,4 +22,20 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'ru.otus.App'
+    }
+
+    // стратегия обработки дубликатов
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // добавить все зависимости внутрь JAR
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
 }
